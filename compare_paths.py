@@ -6,6 +6,7 @@ import sys
 from MeshViewer import *
 import heapq
 import math
+from collections import deque
 
 '''
 
@@ -51,8 +52,6 @@ def DijkstraShortest( G, start, end ):
 
         for vecino in vecinos:
           #calcular la distancia entre el ultimo elemento de V y el vecino
-          dist = distance(V[inicio], V[vecino])
-
           heapq.heappush(colaPrioridad, (costo + 1, vecino, inicio))
         # end for
       # end if
@@ -247,6 +246,17 @@ def backtrack(T, start, end):
     return path
 # end def
 
+def obtener_componente(A, start):
+    visitados = set([start])
+    cola = deque([start])
+    while cola:
+        actual = cola.popleft()
+        for vecino in A[actual]:
+            if vecino not in visitados:
+                visitados.add(vecino)
+                cola.append(vecino)
+    return list(visitados)
+
 '''
 '''
 def main( argv ):
@@ -259,8 +269,20 @@ def main( argv ):
 
   # Correct pId
   pId = pId % len( V )
+  
+  # Get connected component first
+  """comp = obtener_componente(A, pId)"""
 
-  # Get farthest point
+  # Get farthest point only within the same component
+  """qId = pId
+  fDist = 0
+  for i in comp:
+      d = distance(V[pId], V[i])
+      if fDist < d:
+          fDist = d
+          qId = i"""
+
+   # Get farthest point
   qId = pId
   fDist = 0
   for i in range( len( V ) ):
@@ -270,15 +292,18 @@ def main( argv ):
       qId = i
     # end if
   # end for
+  #imrpimir pId   qId
+  print("pId:", pId, "→ qId:", qId)  
 
   # Get paths
   P  = [ DijkstraShortest( ( V, A ), pId, qId ) ]
   P += [ DijkstraCheapest( ( V, A ), pId, qId ) ]
   P += [ KruskalShortest( ( V, A ), pId, qId ) ]
   P += [ KruskalCheapest( ( V, A ), pId, qId ) ]
+  P += [ pId, qId ]
 
   # Define colors
-  C = [ ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ), ( 0, 0, 0 ) ]
+  C = [ ( 1, 0, 0 ), ( 0, 1, 0 ), ( 0, 0, 1 ), ( 0, 0, 0 ), (1,1,0) ]
   for i in range( 4 ) :
     viewer.add_path( P[ i ], C[ i ] )
   # end for
